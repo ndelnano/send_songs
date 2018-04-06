@@ -1,0 +1,17 @@
+{
+  "name": "send-songs",
+  "version": "1.0.0",
+  "dependencies": {
+    "aws-sdk": ">= 2.0.9",
+    "node-uuid": ">= 1.4.1",
+    "request": "^2.85.0",
+    "spotify-web-api-node": "^3.0.0"
+  },
+  "description": "bla",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
