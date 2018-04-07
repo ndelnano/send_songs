@@ -2,6 +2,7 @@
 
 var request = require('request');
 var AWS = require('aws-sdk');
+var dynamodb = new AWS.DynamoDB();
 
 let PAGE_ACCESS_TOKEN = 'EAADQIisgoPsBAF2P4pDV4HBD2bG45ZAU93EEYIGLkK9mLZBoJabS64S5O2YrlbcGGByoAAhLjhWXXtTTQ9ZBc5M0fVn752wMbHeuACqfWDlZCE9ZAbD8VU738YQHQxP2SGTcfztH1EBpFM4B72WkMKvmFfJBhL2xvHUttxKe3cAZDZD';
 
@@ -83,38 +84,30 @@ function handleMessage(sender_psid, received_message) {
       let end_uid = url.lastIndexOf('?')
       let uid = url.substring(start_uid+1, end_uid)
 
+      let name_text = text.match(name_regex)
+      let pre_text = text.match(pre_regex)
+      let post_text = text.match(post_regex)
+
+      if (name_text) {
+        name_text = name_text[0]
+        name_text = name_text.substring(name_text.indexOf('"')+1, name_text.lastIndexOf('"'))
+      }
+      if (pre_text) {
+        pre_text = pre_text[0]
+        pre_text = pre_text.substring(pre_text.indexOf('"')+1, pre_text.lastIndexOf('"'))
+      }
+      if (post_text) {
+        post_text = post_text[0]
+        post_text = post_text.substring(post_text.indexOf('"')+1, post_text.lastIndexOf('"'))
+      }
+
       // TODO
       // Verify recipient name exists in dynamo, send error msg if not
       // send song link and pre msg (if exists) recipient
 
-      request({
-        "uri": url,
-        "method": "GET"
-      }, (err, res, body) => {
-        if (!err) {
-          let msg
+      //verifySongInSpotifyApi(url, uid, sender_psid)
 
-          if (res.statusCode == 200) {
-            msg = "Verified " + url + " song with spotify API"
-            putSongInDynamo(url, uid, sender_psid)
-          }
-          else {
-            msg = 'Received 404 from Spotify trying to verify song link'
-          }
-
-          response = {
-            "text": msg
-          }
-          callSendAPI(sender_psid, response);
-        }
-        else {
-          console.log("Unable to send message:" + err);
-          response = {
-            "text": "Error sending request to Spotify (NOT 404)"
-          }
-          callSendAPI(sender_psid, response)
-        }
-      });
+      getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, name_text, verifySongInSpotifyApi)
 
     }
     else {
@@ -152,8 +145,6 @@ function callSendAPI(sender_psid, response) {
 }
 
 function putSongInDynamo(url, track_uri, sender_psid) {
-  var dynamodb = new AWS.DynamoDB();
-
   // TODO: change me! var seconds_in_five_min = 5*60
   var seconds_in_five_min = -1000
   var time_number = Math.round(Date.now()/1000) + seconds_in_five_min
@@ -194,4 +185,72 @@ function putSongInDynamo(url, track_uri, sender_psid) {
     else     console.log(data);           // successful response
   });
 
+}
+
+function verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_name, receiver_name) {
+  let response
+  request({
+    "uri": url,
+    "method": "GET"
+  }, (err, res, body) => {
+    if (!err) {
+      let msg
+
+      if (res.statusCode == 200) {
+        msg = "Verified " + url + " song with spotify API."
+        putSongInDynamo(url, uid, sender_psid)
+      }
+      else {
+        msg = 'Received 404 from Spotify trying to verify song link'
+      }
+
+      response = {
+        "text": msg
+      }
+      callSendAPI(sender_psid, response);
+    }
+    else {
+      console.log("Unable to send message:" + err);
+      response = {
+        "text": "Error sending request to Spotify (NOT 404)"
+      }
+      callSendAPI(sender_psid, response)
+    }
+  });
+}
+
+function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, receiver_name, f) {
+  // TODO fill in
+  let receiver_psid = ''
+  let sender_name = ''
+
+  /*
+  var receiver_params = {
+    AttributesToGet: [
+      "name",
+      "psid"
+    ],
+    TableName : 'users',
+    Key : { 
+      "psid" : {
+        "S" : sender_psid
+      }
+    }
+  }
+
+  var sender_params = {
+    AttributesToGet: [
+      "name",
+      "psid"
+    ],
+    TableName : 'users',
+    Key : { 
+      "psid" : {
+        "S" : sender_psid
+      }
+    }
+  }
+  */
+
+  verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_name, receiver_name) 
 }
