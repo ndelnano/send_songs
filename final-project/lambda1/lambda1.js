@@ -1,17 +1,18 @@
 'use strict';
 
+// TOOD: help command that echos options
 var request = require('request');
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB();
 
-let PAGE_ACCESS_TOKEN = 'EAADQIisgoPsBAF2P4pDV4HBD2bG45ZAU93EEYIGLkK9mLZBoJabS64S5O2YrlbcGGByoAAhLjhWXXtTTQ9ZBc5M0fVn752wMbHeuACqfWDlZCE9ZAbD8VU738YQHQxP2SGTcfztH1EBpFM4B72WkMKvmFfJBhL2xvHUttxKe3cAZDZD';
+let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 exports.handler = function(event, context, callback) {
 
   //let challenge = event.queryStringParameters['hub.challenge'];
   let challenge = false;
 
-  let secret = 'gVo0Gju8f!NDky';
+  let secret = process.env.CHALLENGE_SECRET;
   let response_msg = '';
 
   if (challenge) {
@@ -93,8 +94,11 @@ function handleMessage(sender_psid, received_message) {
         name_text = name_text.substring(name_text.indexOf('"')+1, name_text.lastIndexOf('"'))
       }
       else {
-        name_text = ''
+        name_text = 'none'
       }
+
+      console.log("Receiver name: " + name_text)
+
       if (pre_text) {
         pre_text = pre_text[0]
         pre_text = pre_text.substring(pre_text.indexOf('"')+1, pre_text.lastIndexOf('"'))
@@ -103,12 +107,14 @@ function handleMessage(sender_psid, received_message) {
         pre_text = ''
       }
 
+      //  Empty string values cannot be inserted into Dynamo, so set
+      //  empty values to 'none', and check for this value when using them
       if (post_text) {
         post_text = post_text[0]
         post_text = post_text.substring(post_text.indexOf('"')+1, post_text.lastIndexOf('"'))
       }
       else {
-        post_text = ''
+        post_text = 'none'
       }
 
       getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, name_text, verifySongInSpotifyApi)
@@ -123,7 +129,7 @@ function handleMessage(sender_psid, received_message) {
   }
 }
 
-function putSongInDynamo(url, uid, sender_psid, receiver_psid, sender_name, receiver_name, pre_msg, post_msg) {
+function putSongInDynamo(url, track_uri, sender_psid, receiver_psid, sender_name, receiver_name, pre_msg, post_msg) {
   // TODO: change me! var seconds_in_five_min = 5*60
   var seconds_in_five_min = -1000
   var time_number = Math.round(Date.now()/1000) + seconds_in_five_min
@@ -169,14 +175,13 @@ function putSongInDynamo(url, uid, sender_psid, receiver_psid, sender_name, rece
   dynamodb.putItem(params, function(err, data) {
     if (err) console.log(err, err.stack); // an error occurred
     else {
-      response = {
-        "text": sender_name + " sent " song_url + " " + pre_msg
+      let response = {
+        "text": sender_name + ": " + pre_msg + " " + url 
       }
       callSendAPI(receiver_psid, response);
       console.log(data);           // successful response
     }
   });
-
 }
 
 function verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_name, receiver_name, pre_msg, post_msg) {
@@ -212,24 +217,21 @@ function verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_nam
 }
 
 function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, receiver_name, f) {
-  // TODO fill in
-  let receiver_psid = ''
-  let sender_name = ''
 
   let receiver_query_params = {
     TableName: "users",
-    IndexName: "name-index",
-    KeyConditionExpression: "name = :receiver_name",
+    IndexName: "full_name-index",
+    KeyConditionExpression: "full_name = :receiver_name",
     ExpressionAttributeValues: {
-      ":receiver_name": receiver_name"
+      ":receiver_name": {S: receiver_name}
     },
-    ProjectionExpression: "name, psid"
+    ProjectionExpression: "full_name, psid"
   }
 
   let sender_query_params = {
     AttributesToGet: [
       "psid",
-      "name"
+      "full_name"
     ],
     TableName : 'users',
     Key : { 
@@ -238,17 +240,14 @@ function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, rece
       }
     }
   }
+  console.log("getUserNamesFromDynamo")
 
   // Lookup receiver by name, and if successful, lookup sender name, and proceed to sending message out
   // On failure of receiver lookup by name, send msg notifying sender and end execution
-  dynamodb.getItem(receiver_query_params, function(err, receiver_lookup_result) {
+  dynamodb.query(receiver_query_params, function(err, receiver_lookup_result) {
     if (err) {
       console.log('FAILED TO GET RECEIVER INFO VIA NAME LOOKUP FROM DYNAMO')
       console.log(err); // an error occurred
-      response = {
-        "text": "Could not locate user " + receiver_name
-      }
-      callSendAPI(sender_psid, response);
     } 
     else {
       dynamodb.getItem(sender_query_params, function(err, sender_lookup_result) {
@@ -257,8 +256,26 @@ function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, rece
           console.log(err); // an error occurred
         } 
         else {
-          // Proceed handling request          
-          f(url, uid, sender_psid, receiver_lookup_result.Item.psid.S, sender_lookup_result.Item.name.S, receiver_lookup_result.Item.name.S, pre_text, post_text)
+          // TODO rid this hack, break does not work in loop below
+          let bla = 0
+          receiver_lookup_result.Items.forEach(function(element, index, array) {
+            // TODO fix this here to support many users with same name
+            // Use the first name that appears
+            // Proceed handling request          
+            if (bla == 0) {
+              bla++
+              f(url, uid, sender_psid, element.psid.S, sender_lookup_result.Item.full_name.S, element.full_name.S, pre_text, post_text)
+            }
+            else
+              bla++
+          });
+          // If user wasn't found (forEach closure doesn't execute)
+          if (bla == 0) {
+            let response = {
+              "text": "Could not locate user"
+            }
+            callSendAPI(sender_psid, response);
+          }
         }
       });
     }

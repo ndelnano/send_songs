@@ -5,6 +5,10 @@ var AWS = require('aws-sdk');
 
 var SpotifyWebApi = require('spotify-web-api-node');
 
+let SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
+let SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
+let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
 AWS.config.update({region:'us-east-1'});
 var dynamodb = new AWS.DynamoDB();
 
@@ -63,8 +67,8 @@ function getReceiverSpotifyTokens(record) {
 
 function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
   var spotifyApi = new SpotifyWebApi({
-    clientId : '12389b3e23114f0f9d278063ae5bbbd4',
-    clientSecret : '96d55481dbbe45c3920555771709b41f'
+    clientId : SPOTIFY_CLIENT_ID,
+    clientSecret : SPOTIFY_CLIENT_SECRET
   });
 
   spotifyApi.setAccessToken(auth_token)
@@ -89,31 +93,26 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
               listened = true
             }
           }
+
           if (listened) {
             console.log(song_name + ' RECEIVER LISTENED TO SONG')
-            handleMessage(record.dynamodb.OldImage.sender_psid.S,
-              record.dynamodb.OldImage.receiver_name.S + ' listened to ' + song_name
-            )
-            handleMessage(record.dynamodb.OldImage.receiver_psid.S, 
-              record.dynamodb.OldImage.sender_name.S ' says "' + 
-              record.dynamodb.OldImage.post_msg.S + '" about "' + song_name '"'
-            )
+            handleMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' listened to ' + song_name)
+            // Release post-message if there is one
+            if (record.dynamodb.OldImage.post_msg.S != 'none') {
+              handleMessage(record.dynamodb.OldImage.receiver_psid.S, record.dynamodb.OldImage.sender_name.S + ' says "' + record.dynamodb.OldImage.post_msg.S + '" about "' + song_name + '"')
+            }
           }
           else {
             // TODO: delete
             console.log('RECEIVER DID NOT LISTEN TO SONG sent at: ' + record.dynamodb.OldImage.TimeToLive)
-            handleMessage(record.dynamodb.OldImage.sender_psid.S, 'receiver DID NOT listen to song')
             if (Number(record.dynamodb.OldImage.trips_through_database.S) < 2) {
-              // TODO: delete
               readdSongToDynamoAndSetNewTTL(record)
               console.log('READDING SONG TO DYNAMO')
-              handleMessage(record.dynamodb.OldImage.sender_psid.S, 'Readding song to Dynamo')
             }
             else {
               console.log('NOT READDING SONG TO DYNAMO, STOPPING HERE')
-              handleMessage(record.dynamodb.OldImage.sender_psid.S, 
-                record.dynamodb.OldImage.receiver_name.S + ' hasnt listened 3 times, ending here'
-              )
+              // song_name is undefined here since it is only set when song shows up in recently played list...can't look up song name with URI :/
+              // handleMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' hasnt listened to ' + song_name + ' 3 times, ending here.')
             }
           }
 
@@ -142,8 +141,6 @@ function callSendAPI(sender_psid, response) {
     },
     "message": response
   }
-
-  let PAGE_ACCESS_TOKEN = 'EAADQIisgoPsBAF2P4pDV4HBD2bG45ZAU93EEYIGLkK9mLZBoJabS64S5O2YrlbcGGByoAAhLjhWXXtTTQ9ZBc5M0fVn752wMbHeuACqfWDlZCE9ZAbD8VU738YQHQxP2SGTcfztH1EBpFM4B72WkMKvmFfJBhL2xvHUttxKe3cAZDZD';
 
   // Send the HTTP request to the Messenger Platform
   request({
