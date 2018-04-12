@@ -9,15 +9,26 @@ let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 exports.handler = function(event, context, callback) {
 
-  //let challenge = event.queryStringParameters['hub.challenge'];
-  let challenge = false;
+  let mode = event.queryStringParameters['hub.mode'];
+  let token = event.queryStringParameters['hub.verify_token'];
+  let challenge = event.queryStringParameters['hub.challenge'];
 
   let secret = process.env.CHALLENGE_SECRET;
   let response_msg = '';
 
-  if (challenge) {
-    response_msg = challenge;
+  let responseCode = 200;
+  // If request is verification request from FB Messenger
+  // This happens when the webhook URL is registered with FB
+  if (mode && token) {
+    // Check the mode and token sent are correct
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      response_msg = challenge;
+    }
+    else {
+      responseCode = 403
+    }
   } 
+
   else 
   {
     let body = JSON.parse(event.body);
@@ -41,7 +52,6 @@ exports.handler = function(event, context, callback) {
       });
     }
   }
-  let responseCode = 200;
 
   var responseBody = {
     message: response_msg,
