@@ -1,0 +1,44 @@
+Link to public github codebase: https://github.com/ndelnano/send_songs
+
+Progress thus far
+----------------
+Since the project's assignment, I have completed a prototype of 1-1 user song sharing. To configure this prototype, I manually inserted user credentials into DynamoDB since I have not yet completed the application's registration process. 1-1 user song sharing is close to complete and I am currently testing it with friends to try and find bugs.
+
+I created this prototype configuration through the AWS Console first since it is my first time working with API Gateway, DynamoDB, and a more complicated IAM configuration. After completing the prototype, I began codifying my configuration with Terraform.
+
+I have begun creating a Terraform configuration. I have defined each service I am using in my 1-1 song sharing prototype. This includes all services that my project will use besides EC2, which is used for the registration process which I have not begun working on yet. I have tested creating these services via Terraform with each service in isolation, but I am working through some errors that I encounter when I create the entire configuration where services depend on one another. It is an IAM related error, and while I do not currently understand how to resolve it, I have not had much time to look into it and am not concerned that it will be a blocking issue.
+
+Problems Encountered
+--------------------
+I have not encountered any specific problems that have blocked me. Since it was my first time working with API Gateway, configuring Gateway + Lambda, and DynamoDB, configuring these resources took me some time. It is my first time working with Terraform as well, so I spent a lot of time reading documentation and understanding how this tool works. 
+
+A problem worth noting is that I learned that Facebook Messenger treats group messages without a Messenger bot very differently than group messages including a Messenger bot. Group messages with Messenger bots are only supported in their iOS and Android apps, and use a slightly different UI than a traditional messaging thread. Since I plan to use my application on desktop as well, I had to shift my approach to group messaging. Instead of native group messaging, I plan to implement group messaging by interacting with my chat bot and using commands to create groups. For instance, a sequence of commmands like this will create a group with the specified users:  
+  "create_group name:'group1'", 
+  "add_to_group group1 'Bob Fisher'"
+  "add_to_group group1 'Mike Meek'"
+
+I am not particularly satisfied with resorting to this approach, but desktop support is imperative, and there appears to be additional complexity in the iOS/Android group messaging configuration.
+
+With the knowledge I have gained during the past two weeks of progress, I am viewing 1-1 song sharing as the core feature of my application, and group messaging to be a "reach" goal. I am taking this approach in order prioritize the Terraform configuration, registration process, and load testing. If time allows, I will complete group messaging.
+
+Remaining Work (pasted from README)
+----------------------------------
+- [x] 1-1 user song sharing
+- [ ] Terraform configuration -- still working out some kinks
+  - [x] API Gateway
+  - [x] Lambda 1
+  - [x] Lambda 2
+  - [x] DynamoDB tables (users, songs_in_flight)
+  - [x] IAM policies
+  - [ ] EC2
+- [ ] Registration Process
+- [ ] Support group song sharing
+- [ ] Fine tune TTL parameters, # of retries
+- [ ] Load Test (Bees with Machine Guns)
+
+Open Questions
+--------------
+How should I tune the following parameters:
+  How many times should I retry the Spotify API for a receiver listening to a song?
+  How much time should I wait between retrying Spotify? Should this time be fixed or variable?
+    --These concerns are largely unimportant, which is why I am not treating them as time sensitive
