@@ -9,6 +9,9 @@ let SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 let SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
 let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
+let USERS_TABLE_NAME = process.env.DYNAMO_USERS_TABLE_NAME;
+let SONGS_IN_FLIGHT_TABLE_NAME = process.env.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME;
+
 AWS.config.update({region:'us-east-1'});
 var dynamodb = new AWS.DynamoDB();
 
@@ -42,7 +45,7 @@ function getReceiverSpotifyTokens(record) {
       "auth_token",
       "refresh_token"
     ],
-    TableName : 'users',
+    TableName : USERS_TABLE_NAME,
     Key : { 
       "psid" : {
         "S" : record.dynamodb.OldImage.receiver_psid.S
@@ -205,7 +208,7 @@ function readdSongToDynamoAndSetNewTTL(record) {
       }
     },
     ReturnConsumedCapacity: "NONE", 
-    TableName: "songs_in_flight"
+    TableName: SONGS_IN_FLIGHT_TABLE_NAME
   }
 
   dynamodb.putItem(params, function(err, data) {

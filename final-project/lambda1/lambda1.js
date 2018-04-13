@@ -7,6 +7,9 @@ var dynamodb = new AWS.DynamoDB();
 
 let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
+let USERS_TABLE_NAME = process.env.DYNAMO_USERS_TABLE_NAME;
+let SONGS_IN_FLIGHT_TABLE_NAME = process.env.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME;
+
 exports.handler = function(event, context, callback) {
 
   // TODO: set up for GET request verification webhook event
@@ -185,7 +188,7 @@ function putSongInDynamo(url, track_uri, sender_psid, receiver_psid, sender_name
       }
     },
     ReturnConsumedCapacity: "NONE", 
-    TableName: "songs_in_flight"
+    TableName: SONGS_IN_FLIGHT_TABLE_NAME
   }
 
   dynamodb.putItem(params, function(err, data) {
@@ -235,7 +238,7 @@ function verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_nam
 function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, receiver_name, f) {
 
   let receiver_query_params = {
-    TableName: "users",
+    TableName: USERS_TABLE_NAME,
     IndexName: "full_name-index",
     KeyConditionExpression: "full_name = :receiver_name",
     ExpressionAttributeValues: {
@@ -249,7 +252,7 @@ function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, rece
       "psid",
       "full_name"
     ],
-    TableName : 'users',
+    TableName : USERS_TABLE_NAME,
     Key : { 
       "psid" : {
         "S" : sender_psid

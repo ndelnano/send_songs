@@ -88,9 +88,11 @@ resource "aws_lambda_function" "lambda2" {
 
   environment {
     variables = {
-      PAGE_ACCESS_TOKEN = ""
-      SPOTIFY_CLIENT_ID = ""
-      SPOTIFY_CLIENT_SECRET = ""
+      PAGE_ACCESS_TOKEN = "${var.PAGE_ACCESS_TOKEN}",
+      SPOTIFY_CLIENT_ID = "${var.SPOTIFY_CLIENT_ID}",
+      SPOTIFY_CLIENT_SECRET = "${var.SPOTIFY_CLIENT_SECRET}",
+      DYNAMO_USERS_TABLE_NAME = "${var.DYNAMO_USERS_TABLE_NAME}",
+      DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME = "${var.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME}"
     }
   }
 }
