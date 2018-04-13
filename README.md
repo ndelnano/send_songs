@@ -1,5 +1,11 @@
 # Send Songs
 
+### How to create and deploy this application
+These details are a work in progress, but upon project completion will look like the following:
+  1. Configure Spotify developer application
+  2. Configure Facebook Messenger bot page and webhook
+  3. Run terraform
+
 ### Milestones and TODO (in order of priority)
 - [x] 1-1 user song sharing
 - [ ] Terraform configuration -- still working out some kinks
@@ -28,3 +34,6 @@ Registration with my Spotify developer application is done through a webserver r
 
 ### How DynamoDB is used
 DynamoDB is used as a queue to connect the two lambda functions that my application invokes. The first lambda function responds to FB Messenger messages, and will insert a record into a DynamoDB table when a song sharing request is received. The application should not immediately call the Spotify API to determine if the song has been played--it should atleast wait until time equal to the song duration has passed, giving the receiving user a chance to play the song. The DynamoDB record will contain a TTL field approximately equal to the song duration, and the second lambda function which calls the Spotify API will be listening to the DynamoDB table stream. When the record's TTL expires, the lambda function will be invoked and will check if the receiving user has played the song. If so, the request is complete, and if not, the record will be re-added to the DynamoDB table with an updated TTL.
+
+### Tests
+Currently only one testing mechanism is in place. In tests/, there is a shell script which uses `curl` to POST a sample FB Messenger webhook request to an API Gateway endpoint. 
