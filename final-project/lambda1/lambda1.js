@@ -9,9 +9,15 @@ let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 exports.handler = function(event, context, callback) {
 
+  // TODO: set up for GET request verification webhook event
+  /*
   let mode = event.queryStringParameters['hub.mode'];
   let token = event.queryStringParameters['hub.verify_token'];
   let challenge = event.queryStringParameters['hub.challenge'];
+  */
+  let challenge = false
+  let mode = false
+  let token = false
 
   let secret = process.env.CHALLENGE_SECRET;
   let response_msg = '';
