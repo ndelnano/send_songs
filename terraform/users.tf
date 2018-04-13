@@ -17,18 +17,6 @@ resource "aws_dynamodb_table" "users-table" {
     type = "S"
   }
 
-/* Must be left out by definition, but leaving here for documentation
-  attribute {
-    name = "auth_token"
-    type = "S"
-  }
-
-  attribute {
-    name = "refresh_token"
-    type = "S"
-  }
-*/
-
   global_secondary_index {
     name               = "full_name-index"
     hash_key           = "full_name"
