@@ -66,11 +66,11 @@ resource "aws_iam_role_policy_attachment" "attach-lambda1" {
 }
 
 resource "aws_lambda_function" "lambda1" {
-  filename         = "../code/lambda1.zip"
+  filename         = "code/lambda1.zip"
   function_name    = "lambda1"
   role             = "${aws_iam_role.iam_lambda1.arn}"
   handler          = "lambda1.handler"
-  source_code_hash = "${base64sha256(file("../code/lambda1.zip"))}"
+  source_code_hash = "${base64sha256(file("code/lambda1.zip"))}"
   runtime          = "nodejs6.10"
 
   environment {
