@@ -45,7 +45,6 @@ resource "aws_iam_policy" "policy-lambda1" {
 				"dynamodb:PutItem",
 				"dynamodb:UpdateItem"
 			],
-
 			"Resource": "${aws_dynamodb_table.users-table.arn}"
 		}
     {
