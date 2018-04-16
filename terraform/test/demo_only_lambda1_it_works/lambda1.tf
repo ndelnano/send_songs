@@ -54,10 +54,10 @@ resource "aws_lambda_function" "lambda1" {
 
   environment {
     variables = {
-      CHALLENGE_SECRET = "${var.CHALLENGE_SECRET}",
-      PAGE_ACCESS_TOKEN = "${var.PAGE_ACCESS_TOKEN}",
-      DYNAMO_USERS_TABLE_NAME = "${var.DYNAMO_USERS_TABLE_NAME}",
-      DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME = "${var.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME}"
+      CHALLENGE_SECRET = "",
+      PAGE_ACCESS_TOKEN = "",
+      DYNAMO_USERS_TABLE_NAME = "",
+      DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME = ""
     }
   }
 }

@@ -43,11 +43,11 @@ resource "aws_iam_policy" "policy-lambda1" {
 				"dynamodb:UpdateItem"
 			],
 			"Resource": "${aws_dynamodb_table.users-table.arn}"
-		}
+		},
     {
 			"Effect": "Allow",
 			"Action": [
-				"dynamodb:PutItem",
+				"dynamodb:PutItem"
 			],
 
 			"Resource": "${aws_dynamodb_table.songs_in_flight-table.arn}"
