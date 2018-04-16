@@ -8,10 +8,7 @@ resource "aws_iam_role" "iam_lambda1" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": [ 
-                  "lambda.amazonaws.com",
-                   "apigateway.amazonaws.com"
-        ]
+        "Service": "lambda.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -21,7 +18,7 @@ resource "aws_iam_role" "iam_lambda1" {
 EOF
 }
 
-resource "aws_iam_policy" "policy-lambda1" {
+resource "aws_iam_policy" "policy_lambda1" {
     name        = "lambda1-policy"
     description = "Iam policy for lambda1"
     policy = <<EOF
@@ -46,7 +43,7 @@ resource "aws_iam_policy" "policy-lambda1" {
 				"dynamodb:UpdateItem"
 			],
 			"Resource": "${aws_dynamodb_table.users-table.arn}"
-		}
+		},
     {
 			"Effect": "Allow",
 			"Action": [
@@ -62,7 +59,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "attach-lambda1" {
     role       = "${aws_iam_role.iam_lambda1.name}"
-    policy_arn = "${aws_iam_policy.policy-lambda1.arn}"
+    policy_arn = "${aws_iam_policy.policy_lambda1.arn}"
 }
 
 resource "aws_lambda_function" "lambda1" {
