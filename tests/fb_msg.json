@@ -16,7 +16,7 @@
           "message": {
             "mid": "mid.$cAAdWXmVa3ERo6FyXnVitxdMasAWz",
             "seq": 319,
-            "text": "send_song https://open.spotify.com/track/2I0FOWHzP5dBiNNFLFsxVt?si=RcQk7t3QSQWRiJnXRnpOpg name:\"Joe Guy\" pre:\"from curl\" ",
+            "text": "send_song https://open.spotify.com/track/46X0dXeliHXD73sxexJx7d?si=rLATOJAeSnqx9yZ11XYP5g name:\"Nick Shmkl\" pre:\"from curl\" ",
             "attachments": [
               {
                 "title": "Happy Now",

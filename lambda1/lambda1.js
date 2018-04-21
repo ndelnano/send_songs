@@ -12,6 +12,9 @@ let SONGS_IN_FLIGHT_TABLE_NAME = process.env.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME;
 
 exports.handler = function(event, context, callback) {
 
+
+  /* CHECK IF PSID EXISTS IN DB (user is already registered or not, and if not, send them link to join */
+
   // TODO: set up for GET request verification webhook event
   /*
   let mode = event.queryStringParameters['hub.mode'];
@@ -86,10 +89,8 @@ function handleMessage(sender_psid, received_message) {
 
     // TODO Use verification code and insert registration info (PSID) into dynamo
     if (text.substring(0,8) === 'register') {
-      response = {
-        "text": "You're asking to sign up!"
-      }
-      callSendAPI(sender_psid, response);
+      response = "You're asking to sign up!"
+      sendFBMessage(sender_psid, response);
     }
 
     else if (text.substring(0,9) === 'send_song') {
@@ -140,10 +141,8 @@ function handleMessage(sender_psid, received_message) {
 
     }
     else {
-      response = {
-        "text": `Not a recognized opcode. Echoing msg. You sent the message: "${text}"!`
-      }
-      callSendAPI(sender_psid, response);
+      response = "Not a recognized opcode. Echoing msg. You sent the message: " + text + "!"
+      sendFBMessage(sender_psid, response);
     }
   }
 }
@@ -194,11 +193,10 @@ function putSongInDynamo(url, track_uri, sender_psid, receiver_psid, sender_name
   dynamodb.putItem(params, function(err, data) {
     if (err) console.log(err, err.stack); // an error occurred
     else {
-      let response = {
-        "text": sender_name + ": " + pre_msg + " " + url 
-      }
-      callSendAPI(receiver_psid, response);
+      let response = sender_name + ": " + pre_msg + " " + url 
+      sendFBMessage(receiver_psid, response);
       console.log(data);           // successful response
+      console.log('Successful insertion of data into SONGS_IN_FLIGHT_TABLE_NAME');
     }
   });
 }
@@ -220,17 +218,12 @@ function verifySongInSpotifyApi(url, uid, sender_psid, receiver_psid, sender_nam
         msg = 'Received 404 from Spotify trying to verify song link'
       }
 
-      response = {
-        "text": msg
-      }
-      callSendAPI(sender_psid, response);
+      sendFBMessage(sender_psid, msg);
     }
     else {
       console.log("Unable to send message:" + err);
-      response = {
-        "text": "Error sending request to Spotify (NOT 404)"
-      }
-      callSendAPI(sender_psid, response)
+      response = "Error sending request to Spotify (NOT 404)"
+      sendFBMessage(sender_psid, response)
     }
   });
 }
@@ -290,10 +283,8 @@ function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, rece
           });
           // If user wasn't found (forEach closure doesn't execute)
           if (bla == 0) {
-            let response = {
-              "text": "Could not locate user"
-            }
-            callSendAPI(sender_psid, response);
+            let response = "Could not locate user"
+            sendFBMessage(sender_psid, response);
           }
         }
       });
@@ -302,12 +293,22 @@ function getUserNamesFromDynamo(url, uid, sender_psid, pre_text, post_text, rece
 
 }
 
+function sendFBMessage(receiver_psid, message) {
+  let response;
+  response = {
+    "text": message
+  }
+
+  // Sends the response message
+  callSendAPI(receiver_psid, response);
+}
+
 // Sends response messages via the Send API
-function callSendAPI(sender_psid, response) {
+function callSendAPI(receiver_psid, response) {
   // Construct the message body
   let request_body = {
     "recipient": {
-      "id": sender_psid
+      "id": receiver_psid
     },
     "message": response
   }

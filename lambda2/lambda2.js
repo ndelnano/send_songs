@@ -32,7 +32,7 @@ exports.handler = (event, context, callback) => {
       //let receiver_not_listened_psid = record.dynamodb.OldImage.song_uri.S;
       //let receiver_listened_psid = record.dynamodb.OldImage.song_uri.S;
 
-      //handleMessage(sender_psid);
+      //sendFBMessage(sender_psid);
     }
   });
   callback(null, `Successfully processed ${event.Records.length} records.`);
@@ -83,7 +83,8 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
       // Save the access token so that it's used in future calls
       spotifyApi.setAccessToken(data.body['access_token']);
 
-      spotifyApi.getMyRecentlyPlayedTracks({}, function(err, data) {
+      // Use max value for limit
+      spotifyApi.getMyRecentlyPlayedTracks({limit: 50}, function(err, data) {
         if (err) {
           console.error('Something went wrong!', err);
         } else {
@@ -99,10 +100,10 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
 
           if (listened) {
             console.log(song_name + ' RECEIVER LISTENED TO SONG')
-            handleMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' listened to ' + song_name)
+            sendFBMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' listened to ' + song_name)
             // Release post-message if there is one
             if (record.dynamodb.OldImage.post_msg.S != 'none') {
-              handleMessage(record.dynamodb.OldImage.receiver_psid.S, record.dynamodb.OldImage.sender_name.S + ' says "' + record.dynamodb.OldImage.post_msg.S + '" about "' + song_name + '"')
+              sendFBMessage(record.dynamodb.OldImage.receiver_psid.S, record.dynamodb.OldImage.sender_name.S + ' says "' + record.dynamodb.OldImage.post_msg.S + '" about "' + song_name + '"')
             }
           }
           else {
@@ -115,7 +116,7 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
             else {
               console.log('NOT READDING SONG TO DYNAMO, STOPPING HERE')
               // song_name is undefined here since it is only set when song shows up in recently played list...can't look up song name with URI :/
-              // handleMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' hasnt listened to ' + song_name + ' 3 times, ending here.')
+              sendFBMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' hasnt listened to ' + record.dynamodb.OldImage.song_url.S + ' 3 times, ending here.')
             }
           }
 
@@ -126,21 +127,21 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
     });
 }
 
-function handleMessage(sender_psid, message) {
+function sendFBMessage(receiver_psid, message) {
   let response;
   response = {
     "text": message
   }
 
   // Sends the response message
-  callSendAPI(sender_psid, response);
+  callSendAPI(receiver_psid, response);
 }
 
-function callSendAPI(sender_psid, response) {
+function callSendAPI(receiver_psid, response) {
   // Construct the message body
   let request_body = {
     "recipient": {
-      "id": sender_psid
+      "id": receiver_psid
     },
     "message": response
   }
