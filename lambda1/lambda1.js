@@ -11,35 +11,38 @@ let USERS_TABLE_NAME = process.env.DYNAMO_USERS_TABLE_NAME;
 let SONGS_IN_FLIGHT_TABLE_NAME = process.env.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME;
 
 exports.handler = function(event, context, callback) {
+    let response_msg = '';
+    let responseCode = 200;
 
+  /* TODO CHECK IF PSID EXISTS IN DB (user is already registered or not, and if not, send them link to join */
 
-  /* CHECK IF PSID EXISTS IN DB (user is already registered or not, and if not, send them link to join */
+  // Handle GET request for FB webhook verification event
+  if (event['queryStringParameters']) {
+    let mode = event['queryStringParameters']['hub.mode'];
+    let token = event['queryStringParameters']['hub.verify_token'];
+    let challenge = event['queryStringParameters']['hub.challenge'];
 
-  // TODO: set up for GET request verification webhook event
-  /*
-  let mode = event.queryStringParameters['hub.mode'];
-  let token = event.queryStringParameters['hub.verify_token'];
-  let challenge = event.queryStringParameters['hub.challenge'];
-  */
-  let challenge = false
-  let mode = false
-  let token = false
+    let VERIFY_TOKEN = process.env.CHALLENGE_SECRET;
+    // If request is verification request from FB Messenger
+    // This happens when the webhook URL is FIRST registered with FB
+    if (mode && token) {
+      // Check the mode and token sent are correct
+      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+        response_msg = challenge;
+      }
+      else {
+        responseCode = 403
+        console.log('ERROR registering webhook')
+      }
 
-  let secret = process.env.CHALLENGE_SECRET;
-  let response_msg = '';
+      var response = {
+        statusCode: responseCode,
+        body: challenge
+      };
 
-  let responseCode = 200;
-  // If request is verification request from FB Messenger
-  // This happens when the webhook URL is registered with FB
-  if (mode && token) {
-    // Check the mode and token sent are correct
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      response_msg = challenge;
-    }
-    else {
-      responseCode = 403
-    }
-  } 
+      callback(null, response)
+    } 
+  }
 
   else 
   {
@@ -63,20 +66,19 @@ exports.handler = function(event, context, callback) {
         response_msg = 'EVENT_RECEIVED';
       });
     }
+
+    var responseBody = {
+      message: response_msg
+    };
+
+    var response = {
+      statusCode: responseCode,
+      body: JSON.stringify(responseBody)
+    };
+
+    console.log('sending http response')
+    callback(null, response);
   }
-
-  var responseBody = {
-    message: response_msg,
-    input: event
-  };
-
-  var response = {
-    statusCode: responseCode,
-    body: JSON.stringify(responseBody)
-  };
-
-  console.log('sending http response')
-  callback(null, response);
 };
 
 // Handles messages events
