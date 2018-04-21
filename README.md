@@ -23,13 +23,13 @@ These details are a work in progress, but upon project completion will look like
 ### How does it work?
 Spotify exposes an API endpoint for [recently played songs by a user](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/). Using this data, its possible to know when a user plays a song that has been shared with them by a friend. 
 
-![Song Sharing Architecture](Message_Sending_Architecture.png?raw=true "Song Sharing Architecture")
+![Song Sharing Architecture](diagrams/Message_Sending_Architecture.png?raw=true "Song Sharing Architecture")
 
 ### Spotify API Registration
 Registration with my Spotify developer application is done through a webserver run on Amazon EC2. After a user yields permission to my application to view their recently played songs on Spotify, a user may begin interacting with my Facebook messenger bot. The registration flow has yet to be constructed and the precise details of this process will be revealed after its completion.
 
 **There are some nuiances to the registration process and how Facebook idenifies users relative to my bot page that require the structure described below. I am intentionally not explaining these details currently as they are nuianced and I am hoping to simplify them when I complete that portion of my project.**
-![Registration Architecture](Registration_Architecture.png?raw=true "Registration Architecture")
+![Registration Architecture](diagrams/Registration_Architecture.png?raw=true "Registration Architecture")
 
 
 ### How DynamoDB is used
