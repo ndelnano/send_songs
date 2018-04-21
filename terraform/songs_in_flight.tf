@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "songs_in_flight-table" {
-  name           = "songs_in_flight-tf"
+  name           = "${var.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME}"
     read_capacity  = 3
     write_capacity = 3
     hash_key       = "user-time"

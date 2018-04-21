@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "users-table" {
-  name           = "users-tf"
+  name           = "${var.DYNAMO_USERS_TABLE_NAME}"
 
   // TODO update read and write capacity
   read_capacity  = 1
@@ -18,7 +18,7 @@ resource "aws_dynamodb_table" "users-table" {
   }
 
   global_secondary_index {
-    name               = "full_name-index"
+    name               = "${var.USERS_NAME_INDEX}"
     hash_key           = "full_name"
     write_capacity     = 1
     read_capacity      = 1

@@ -47,7 +47,14 @@ resource "aws_iam_policy" "policy_lambda1" {
     {
 			"Effect": "Allow",
 			"Action": [
-				"dynamodb:PutItem",
+				"dynamodb:Query"
+			],
+			"Resource": "arn:aws:dynamodb:${var.region}:${var.accountId}:table/${var.DYNAMO_USERS_TABLE_NAME}/index/${var.USERS_NAME_INDEX}"
+		},
+    {
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:PutItem"
 			],
 
 			"Resource": "${aws_dynamodb_table.songs_in_flight-table.arn}"
@@ -60,6 +67,15 @@ EOF
 resource "aws_iam_role_policy_attachment" "attach-lambda1" {
     role       = "${aws_iam_role.iam_lambda1.name}"
     policy_arn = "${aws_iam_policy.policy_lambda1.arn}"
+}
+
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.lambda1.arn}"
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "arn:aws:execute-api:${var.region}:${var.accountId}:${aws_api_gateway_rest_api.fb_messenger_api.id}/*/${aws_api_gateway_method.message-received_all_methods.http_method}${aws_api_gateway_resource.message_received.path}"
 }
 
 resource "aws_lambda_function" "lambda1" {

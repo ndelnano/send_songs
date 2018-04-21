@@ -37,7 +37,7 @@ resource "aws_iam_policy" "policy-lambda2" {
     {
 			"Effect": "Allow",
 			"Action": [
-				"dynamodb:GetItem",
+				"dynamodb:GetItem"
 			],
 
 			"Resource": "${aws_dynamodb_table.users-table.arn}"
@@ -45,7 +45,7 @@ resource "aws_iam_policy" "policy-lambda2" {
     {
 			"Effect": "Allow",
 			"Action": [
-				"dynamodb:PutItem",
+				"dynamodb:PutItem"
 			],
 
 			"Resource": "${aws_dynamodb_table.songs_in_flight-table.arn}"
@@ -66,11 +66,19 @@ resource "aws_iam_policy" "policy-lambda2" {
         "dynamodb:ListStreams"
       ],
 
-			"Resource": "${aws_dynamodb_table.songs_in_flight-table.arn}"
+			"Resource": "${aws_dynamodb_table.songs_in_flight-table.stream_arn}"
     }
   ]
 }
 EOF
+}
+
+resource "aws_lambda_event_source_mapping" "songs_in_flight_lambda_trigger" {
+  batch_size        = 1
+  event_source_arn  = "${aws_dynamodb_table.songs_in_flight-table.stream_arn}"
+  enabled           = true
+  function_name     = "${aws_lambda_function.lambda2.arn}"
+  starting_position = "LATEST"
 }
 
 resource "aws_iam_role_policy_attachment" "attach-lambda2" {
