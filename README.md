@@ -3,9 +3,11 @@
 ### How to create and deploy this application
 These details are a work in progress, but upon project completion will look like the following:
   1. Configure Spotify developer application
-  2. Configure Facebook Messenger bot page and webhook
-  3. Run terraform
-  4. Create API Gateway + 2 Lambda functions described under Milestones that are not included in Terraform config
+  2. Configure Facebook Messenger bot page
+  3. Run terraform -- the API endpoint for the FB Messenger webhook is an output variable
+  4. Configure FB Webhook for 'Message received' events, using API endpoint from output variables by Terraform in step 3
+  5. Create API Gateway + 2 Lambda functions described under Milestones that are not included in Terraform config
+    --The API endpoint for the lambda function in the register_lambda/ dir should be distributed in the FB Page description as users will use it to sign up.
 
 ### Milestones (in order of priority)
 - [x] 1-1 user song sharing
