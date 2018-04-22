@@ -8,17 +8,19 @@ These details are a work in progress, but upon project completion will look like
 
 ### Milestones and TODO (in order of priority)
 - [x] 1-1 user song sharing
-- [ ] Terraform configuration -- still working out some kinks
+- [x] Terraform configuration
   - [x] API Gateway
   - [x] Lambda 1
   - [x] Lambda 2
   - [x] DynamoDB tables (users, songs_in_flight)
   - [x] IAM policies
-  - [ ] EC2
-- [ ] Registration Process
-- [ ] Support group song sharing
+  - [ ] API Gateway and Lambda functions for Spotify API authorization
+- [x] Registration Process
 - [ ] Fine tune TTL parameters, # of retries
+- [ ] Support group song sharing
 - [ ] Load Test (Bees with Machine Guns)
+
+I do not currently plan to write Terraform for an API Gateway API and two lambda functions that handle Spotify authentication, unless time permits. If you would like to run this application, you are repsonsible for handling Spotify API user authorization and inserting the following fields into the users Dynamo DB table: spotify access token, spotify refresh token. I do not plan on codifying this infrastructure unless time permits as I expect it to be slightly nuanced and I am prioritizing other aspects of the project first.
 
 ### How does it work?
 Spotify exposes an API endpoint for [recently played songs by a user](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/). Using this data, its possible to know when a user plays a song that has been shared with them by a friend. 
@@ -26,9 +28,10 @@ Spotify exposes an API endpoint for [recently played songs by a user](https://de
 ![Song Sharing Architecture](diagrams/Message_Sending_Architecture.png?raw=true "Song Sharing Architecture")
 
 ### Spotify API Registration
-Registration with my Spotify developer application is done through a webserver run on Amazon EC2. After a user yields permission to my application to view their recently played songs on Spotify, a user may begin interacting with my Facebook messenger bot. The registration flow has yet to be constructed and the precise details of this process will be revealed after its completion.
+Users register with the Spotify API through API Gateway and a series of (2) Lambda functions. The first Lambda function redirects to the Spotify Auth flow and serves the user a Spotify login page, which is supplied with a callback URL connected to the second Lambda. Upon completion, this login page "calls back" to the second Lambda function, which gives the user a 16 digit code. The user is expected to send this code to the FB Page bot to complete registration.
 
-**There are some nuiances to the registration process and how Facebook idenifies users relative to my bot page that require the structure described below. I am intentionally not explaining these details currently as they are nuianced and I am hoping to simplify them when I complete that portion of my project.**
+### Why a 16 digit code?
+I must link the identity of a user on Spotify (their auth tokens) with their PSID (page scoped ID) issued by Facebook Messenger when the FB user interacts with my page. This mechanism allows me to do so. I also require that the user specify their full name when registering with the 16 digit code. This is because this program is a text-based chat bot, and a sender must include the recipients name in order to send a message to them.
 ![Registration Architecture](diagrams/Registration_Architecture.png?raw=true "Registration Architecture")
 
 
