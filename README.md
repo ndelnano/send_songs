@@ -1,5 +1,11 @@
 # Send Songs
 
+### Services Used
+-API Gateway
+-DynamoDB
+-Lambda
+-Terraform
+
 ### How to create and deploy this application
 These details are a work in progress, but upon project completion will look like the following:
   1. Configure Spotify developer application
