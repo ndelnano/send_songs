@@ -1,3 +1,10 @@
+/*
+ * Dependencies of this lambda function:
+ * ENV -- (spotify) client_id and client_secret
+ *        redirect_uri registered with spotify
+ *        DYNAMO_USERS_TABLE_NAME
+ */
+
 var request = require('request');
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB();
@@ -79,7 +86,7 @@ function insertRandomCodeIntoUsersTable(registration_code, auth_token, refresh_t
       "psid": {
         S: registration_code
       },
-      "auth_toke": {
+      "auth_token": {
         S: auth_token
       }, 
       "refresh_token": {

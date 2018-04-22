@@ -40,7 +40,8 @@ resource "aws_iam_policy" "policy_lambda1" {
 				"dynamodb:GetItem",
 				"dynamodb:Query",
 				"dynamodb:PutItem",
-				"dynamodb:UpdateItem"
+				"dynamodb:UpdateItem",
+				"dynamodb:DeleteItem"
 			],
 			"Resource": "${aws_dynamodb_table.users-table.arn}"
 		},

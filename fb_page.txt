@@ -1,0 +1,20 @@
+This is the text meant to be the Facebook Page description.
+
+To allow this application access to your recently played songs from Spotify
+---------------------------------------------------------------------------
+Go to the following URL: https://qmzibslied.execute-api.us-east-1.amazonaws.com/prod/callspotify
+----Copy the 16 digit code emitted at the end of the registration process.
+
+
+Message the Send Songsss bot with the following command:
+--------------------------------------------------------
+register code:"16_digit_code_from_above" name:"your_full_name_that_friends_will_mention_you_by"
+
+You are now registered!
+
+You can send songs to your friends with the following format. The only order that matters is that the message begins with 'send_song'.
+
+send_song name:"friends name" pre:"msg to be delivered with song link" post:"msg to be delivered after receiver listens" spotify_song_link
+
+name and spotify_song_link are required, but pre and post are both optional
+

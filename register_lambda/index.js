@@ -1,3 +1,9 @@
+/*
+ * Dependencies of this lambda function:
+ * ENV -- (spotify) client_id
+ *        redirect_uri registered with spotify
+ */
+
 var querystring = require('querystring');
 
 var client_id = process.env.client_id

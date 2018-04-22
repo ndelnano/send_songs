@@ -89,10 +89,30 @@ function handleMessage(sender_psid, received_message) {
   if (received_message.text) {    
     let text = received_message.text
 
-    // TODO Use verification code and insert registration info (PSID) into dynamo
     if (text.substring(0,8) === 'register') {
-      response = "You're asking to sign up!"
-      sendFBMessage(sender_psid, response);
+      let name_regex = /name:"[^"]+"/g
+      let code_regex = /code:"[^"]+"/g
+
+      let name_text = text.match(name_regex)
+      let code_text = text.match(code_regex)
+
+      if (name_text) {
+        name_text = name_text[0]
+        name_text = name_text.substring(name_text.indexOf('"')+1, name_text.lastIndexOf('"'))
+      }
+      else {
+        name_text = 'none'
+      }
+
+      if (code_text) {
+        code_text = code_text[0]
+        code_text = code_text.substring(code_text.indexOf('"')+1, code_text.lastIndexOf('"'))
+      }
+      else {
+        code_text = ''
+      }
+
+      registerUser(sender_psid, code_text, name_text)
     }
 
     else if (text.substring(0,9) === 'send_song') {
@@ -118,8 +138,6 @@ function handleMessage(sender_psid, received_message) {
       else {
         name_text = 'none'
       }
-
-      console.log("Receiver name: " + name_text)
 
       if (pre_text) {
         pre_text = pre_text[0]
@@ -328,4 +346,79 @@ function callSendAPI(receiver_psid, response) {
       console.log("Unable to send message:" + err);
     }
   }); 
+}
+
+/*
+ * Deletes record from users table with random code as psid (artifact of the registration process) -- (PK's cannot be modified, so must delete and re-insert)
+ * Get spotify tokens from old record, and insert into new record using psid and full_name specified by user in registration message
+ */
+function registerUser(psid, registration_code, name) {
+  let lookup_query_params = {
+    AttributesToGet: [
+      "auth_token",
+      "refresh_token"
+    ],
+    TableName : USERS_TABLE_NAME,
+    Key : { 
+      "psid" : {
+        "S" : registration_code
+      }
+    }
+  }
+
+  dynamodb.getItem(lookup_query_params, function(err, sender_lookup_result) {
+    if (err) {
+      console.log('Failed to lookup with registration code')
+    } 
+    else {  
+      var params = {
+        Item: {
+          "psid": {
+            S: psid 
+          },
+          "full_name": {
+            S: name
+          }, 
+          "auth_token": {
+            S: sender_lookup_result.Item.auth_token.S
+          }, 
+          "refresh_token": {
+            S: sender_lookup_result.Item.refresh_token.S
+          } 
+        },
+        ReturnConsumedCapacity: "NONE", 
+        TableName: USERS_TABLE_NAME
+      }
+
+      dynamodb.putItem(params, function(err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+        else {
+          console.log(`Successful insertion of ${name} into users table`);
+          console.log('Deleting record leftover from registration')
+
+          var docClient = new AWS.DynamoDB.DocumentClient();
+          var params = {
+            TableName: USERS_TABLE_NAME,
+            Key:{
+              "psid":registration_code
+            },
+            ConditionExpression:"psid = :val",
+            ExpressionAttributeValues: {
+              ":val": registration_code
+            }
+          };
+
+          docClient.delete(params, function(err, data) {
+            if (err) {
+              console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+              console.log("DeleteItem succeeded:", JSON.stringify(data, null, 2));
+              sendFBMessage(psid, 'You are now registered!')
+            }
+          });
+        }
+      });
+
+    }
+  });
 }
