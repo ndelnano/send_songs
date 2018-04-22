@@ -17,7 +17,7 @@ These details are a work in progress, but upon project completion will look like
   - [ ] API Gateway and Lambda functions for Spotify API authorization
   - [ ] Remote State (S3)
 - [x] Registration Process
-- [ ] Fine tune TTL parameters, # of retries
+- [x] Fine tune TTL parameters, # of retries to Spotify recently played API per song share request
 - [ ] Support group song sharing
 - [ ] Load Test (Bees with Machine Guns)
 
@@ -25,6 +25,8 @@ I do not currently plan to write Terraform for an API Gateway API and two lambda
 
 ### How does it work?
 Spotify exposes an API endpoint for [recently played songs by a user](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/). Using this data, its possible to know when a user plays a song that has been shared with them by a friend. 
+
+A form of backoff is used when calling Spotify's recently played endpoint for a recipient of a song request. For the first hour, the Spotify API is called every 5 minutes. After this, and until a week has passed, the API is called once ever 1 hour. This is dictated by setting the DynamoDB record's TTL field appropriately.
 
 ![Song Sharing Architecture](diagrams/Message_Sending_Architecture.png?raw=true "Song Sharing Architecture")
 
