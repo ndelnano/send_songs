@@ -8,13 +8,14 @@ These details are a work in progress, but upon project completion will look like
 
 ### Milestones and TODO (in order of priority)
 - [x] 1-1 user song sharing
-- [x] Terraform configuration
+- [ ] Terraform configuration
   - [x] API Gateway
   - [x] Lambda 1
   - [x] Lambda 2
   - [x] DynamoDB tables (users, songs_in_flight)
   - [x] IAM policies
   - [ ] API Gateway and Lambda functions for Spotify API authorization
+  - [ ] Remote State (S3)
 - [x] Registration Process
 - [ ] Fine tune TTL parameters, # of retries
 - [ ] Support group song sharing
