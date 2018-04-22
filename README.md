@@ -27,7 +27,9 @@ These details are a work in progress, but upon project completion will look like
 - [ ] Support group song sharing
 - [ ] Load Test (Bees with Machine Guns)
 
-I do not currently plan to write Terraform for an API Gateway API and two lambda functions that handle Spotify authentication, unless time permits. If you would like to run this application, you are repsonsible for handling Spotify API user authorization and inserting the following fields into the users Dynamo DB table: spotify access token, spotify refresh token. I do not plan on codifying this infrastructure unless time permits as I expect it to be slightly nuanced and I am prioritizing other aspects of the project first.
+I do not currently plan to write Terraform for an API Gateway API and two lambda functions that handle Spotify authentication, unless time permits. If you would like to run this application, you are repsonsible for handling Spotify API user authorization and inserting the following fields into the users Dynamo DB table: spotify access token, spotify refresh token. Setting this infrastructure up requires the following steps: Create API Gateway + lambda function with code from register_lambda/, which redirects user to Spotify auth flow (follow steps for permitting a 302 redirect [here](https://kennbrodhagen.net/2016/04/02/how-to-return-302-using-api-gateway-lambda/). Set the callback URL sent to Spotify to the location of the second API Gateway + lambda function config. This endpoint and lambda function will be invoked upon user completion of Spotify auth flow. Create this lambda using the code from callback_spotify_lambda/.
+
+The reason that I have not codified this infrastructure is because I was unable to locate Terraform documentation for setting 'Header Mappings' for the API Gateway Integration Response. 
 
 ### How does it work?
 Spotify exposes an API endpoint for [recently played songs by a user](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/). Using this data, its possible to know when a user plays a song that has been shared with them by a friend. 
