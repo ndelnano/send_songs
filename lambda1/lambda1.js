@@ -168,10 +168,15 @@ function handleMessage(sender_psid, received_message) {
 }
 
 function putSongInDynamo(url, track_uri, sender_psid, receiver_psid, sender_name, receiver_name, pre_msg, post_msg) {
-  // TODO: change me! var seconds_in_five_min = 5*60
-  var seconds_in_five_min = -1000
-  var time_number = Math.round(Date.now()/1000) + seconds_in_five_min
+  /* 
+   * Set TTL to a value that will expire instantly, to support
+   * the case where the receiver has listened to the song within
+   * their last 50 plays, and it appears on the first call to recently played.
+   */
+  var negative_time = -1000
+  var time_number = Math.round(Date.now()/1000) + negative_time
   var time = String(time_number)
+  var time_now = String(Math.round(Date.now()/1000))
 
   var params = {
     Item: {
@@ -202,8 +207,8 @@ function putSongInDynamo(url, track_uri, sender_psid, receiver_psid, sender_name
       "post_msg": {
         S: post_msg
       },
-      "trips_through_database": {
-        S: '0'
+      "time_sent": {
+        S: time_now
       }
     },
     ReturnConsumedCapacity: "NONE", 

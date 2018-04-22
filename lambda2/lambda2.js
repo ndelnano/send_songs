@@ -107,13 +107,27 @@ function callRecentlyPlayedForUser(record, auth_token, refresh_token) {
             }
           }
           else {
-            // TODO: delete
-            console.log('RECEIVER DID NOT LISTEN TO SONG sent at: ' + record.dynamodb.OldImage.TimeToLive)
-            if (Number(record.dynamodb.OldImage.trips_through_database.S) < 2) {
-              readdSongToDynamoAndSetNewTTL(record)
+            var time_now = Math.round(Date.now()/1000)
+            var time_sent = Number(record.dynamodb.OldImage.time_sent.S)
+            var seconds_in_hour = 60*60
+            var seconds_in_day = 60*60*24
+            var seconds_in_week = 7*60*60*24
+            var seconds_in_five_min = 5*60
+
+            // If under an hour since song was sent, set TTL to 5 min
+            if ((time_now - time_sent) <= seconds_in_hour) {
               console.log('READDING SONG TO DYNAMO')
+              readdSongToDynamoAndSetNewTTL(record, seconds_in_five_min)
             }
+            // If under a week since song was sent, set TTL to 1 hr
+            else if ((time_now - time_sent) <= seconds_in_week) {
+              console.log('READDING SONG TO DYNAMO')
+              readdSongToDynamoAndSetNewTTL(record, seconds_in_hour)
+            }
+            // Expire song sending request at 1 week
             else {
+              console.log(time_now)
+              console.log(time_sent)
               console.log('NOT READDING SONG TO DYNAMO, STOPPING HERE')
               // song_name is undefined here since it is only set when song shows up in recently played list...can't look up song name with URI :/
               sendFBMessage(record.dynamodb.OldImage.sender_psid.S, record.dynamodb.OldImage.receiver_name.S + ' hasnt listened to ' + record.dynamodb.OldImage.song_url.S + ' 3 times, ending here.')
@@ -165,15 +179,9 @@ function callSendAPI(receiver_psid, response) {
  * how to manage a post-reply from the receiver where they have follow up prompts for multiple songs
  * or maybe my app just does not handle this
 *******/
-function readdSongToDynamoAndSetNewTTL(record) {
-  // TODO change my value here
-  var seconds_in_five_min = 60 * 5
-  var time_number = Math.round(Date.now()/1000) + seconds_in_five_min
+function readdSongToDynamoAndSetNewTTL(record, ttl_offset) {
+  var time_number = Math.round(Date.now()/1000) + ttl_offset
   var time = String(time_number)
-
-  // Increment trips through DB
-  // TODO: Only send song through X times, for now 3 times total
-  var trips_through_db = String(Number(record.dynamodb.OldImage.trips_through_database.S) + 1)
 
   var params = {
     Item: {
@@ -204,8 +212,8 @@ function readdSongToDynamoAndSetNewTTL(record) {
       "post_msg": {
         S: record.dynamodb.OldImage.post_msg.S
       },
-      "trips_through_database": {
-        S: trips_through_db
+      "time_sent": {
+        S: record.dynamodb.OldImage.time_sent.S
       }
     },
     ReturnConsumedCapacity: "NONE", 
@@ -214,7 +222,6 @@ function readdSongToDynamoAndSetNewTTL(record) {
 
   dynamodb.putItem(params, function(err, data) {
     if (err) {
-      // TODO: alert on error
       console.log(err, err.stack); // an error occurred
     }
     else     console.log(data);           // successful response
