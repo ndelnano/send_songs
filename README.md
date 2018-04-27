@@ -5,6 +5,8 @@ These details are a work in progress, but upon project completion will look like
   1. Configure Spotify developer application
   2. Configure Facebook Messenger bot page
   3. Run terraform -- the API endpoint for the FB Messenger webhook is an output variable
+    --This project uses terraform remote state. Before running Terraform, edit 
+      terraform/remote_state.tf to point to an S3 bucket of your own.
   4. Configure FB Webhook for 'Message received' events, using API endpoint from output variables by Terraform in step 3
   5. Create API Gateway + 2 Lambda functions described under Milestones that are not included in Terraform config
     --The API endpoint for the lambda function in the register_lambda/ dir should be distributed in the FB Page description as users will use it to sign up.
@@ -22,7 +24,6 @@ These details are a work in progress, but upon project completion will look like
 - [x] Registration Process
 - [x] Fine tune TTL parameters, # of retries to Spotify recently played API per song share request
 - [ ] Support group song sharing
-- [ ] Load Test (Bees with Machine Guns)
 
 I do not currently plan to write Terraform for an API Gateway API and two lambda functions that handle Spotify authentication, unless time permits. If you would like to run this application, you are repsonsible for handling Spotify API user authorization and inserting the following fields into the users Dynamo DB table: spotify access token, spotify refresh token. Setting this infrastructure up requires the following steps: Create API Gateway + lambda function with code from register_lambda/, which redirects user to Spotify auth flow (follow steps for permitting a 302 redirect [here](https://kennbrodhagen.net/2016/04/02/how-to-return-302-using-api-gateway-lambda/). Set the callback URL sent to Spotify to the location of the second API Gateway + lambda function config. This endpoint and lambda function will be invoked upon user completion of Spotify auth flow. Create this lambda using the code from callback_spotify_lambda/. The environment variables that these lambda functions require are documented in the respective lambda function file in each of these directories.
 
