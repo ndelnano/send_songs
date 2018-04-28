@@ -1,9 +1,8 @@
 resource "aws_dynamodb_table" "users-table" {
   name           = "${var.DYNAMO_USERS_TABLE_NAME}"
 
-  // TODO update read and write capacity
-  read_capacity  = 1
-  write_capacity = 1
+  read_capacity  = "${var.DYNAMO_USERS_READ_CAPACITY}"
+  write_capacity = "${var.DYNAMO_USERS_WRITE_CAPACITY}"
 
   hash_key       = "psid"
 
@@ -20,8 +19,8 @@ resource "aws_dynamodb_table" "users-table" {
   global_secondary_index {
     name               = "${var.USERS_NAME_INDEX}"
     hash_key           = "full_name"
-    write_capacity     = 1
-    read_capacity      = 1
+   write_capacity     = "${var.DYNAMO_USERS_NAME_INDEX_WRITE_CAPACITY}"
+    read_capacity      = "${var.DYNAMO_USERS_NAME_INDEX_READ_CAPACITY}"
     projection_type    = "INCLUDE"
     non_key_attributes = ["full_name"]
   }

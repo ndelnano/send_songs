@@ -1,29 +1,33 @@
 # Send Songs
 
+A text based chat application built on Facebook Messenger and AWS to let you share Spotify songs with friends and be notified in real-time after they play them.
+
+Interacting with this application involves sending predefined commands to a Facebook bot page. The commands and their structure are defined in `fb_page_description.txt`. This is not a sleek or sexy interface with this application. This choice was made because the learning goals of this project were introductions to several AWS services and Terraform. A potential structure to offer a better UX would be a [Messenger Chat Extension](https://developers.facebook.com/docs/messenger-platform/guides/chat-extensions). An official Spotify chat extension also exists, but the structure that Messenger imposes on chat bots prohibited me from building my application using the official Spotify extension.
+
 ### How to create and deploy this application
 These details are a work in progress, but upon project completion will look like the following:
   1. Configure Spotify developer application
   2. Configure Facebook Messenger bot page
   3. Run terraform -- the API endpoint for the FB Messenger webhook is an output variable
-    --This project uses terraform remote state. Before running Terraform, edit 
-      terraform/remote_state.tf to point to an S3 bucket of your own.
-  4. Configure FB Webhook for 'Message received' events, using API endpoint from output variables by Terraform in step 3
+    --This project uses terraform remote state. Before running Terraform, edit terraform/remote_state.tf to point to an S3 bucket of your own.
+    --Also provide values for the variables defined in variables.tf
+  4. Configure FB Webhook for 'Message received' events, using API endpoint from output variables by Terraform in step 3, wich '/message-received' appended to it
   5. Create API Gateway + 2 Lambda functions described under Milestones that are not included in Terraform config
     --The API endpoint for the lambda function in the register_lambda/ dir should be distributed in the FB Page description as users will use it to sign up.
 
 ### Milestones (in order of priority)
 - [x] 1-1 user song sharing
 - [ ] Terraform configuration
+  - [x] Remote State (S3)
   - [x] API Gateway
   - [x] Lambda 1
   - [x] Lambda 2
   - [x] DynamoDB tables (users, songs_in_flight)
   - [x] IAM policies
   - [ ] API Gateway and Lambda functions for Spotify API authorization
-  - [ ] Remote State (S3)
 - [x] Registration Process
 - [x] Fine tune TTL parameters, # of retries to Spotify recently played API per song share request
-- [ ] Support group song sharing
+- [ ] Group song sharing
 
 I do not currently plan to write Terraform for an API Gateway API and two lambda functions that handle Spotify authentication, unless time permits. If you would like to run this application, you are repsonsible for handling Spotify API user authorization and inserting the following fields into the users Dynamo DB table: spotify access token, spotify refresh token. Setting this infrastructure up requires the following steps: Create API Gateway + lambda function with code from register_lambda/, which redirects user to Spotify auth flow (follow steps for permitting a 302 redirect [here](https://kennbrodhagen.net/2016/04/02/how-to-return-302-using-api-gateway-lambda/). Set the callback URL sent to Spotify to the location of the second API Gateway + lambda function config. This endpoint and lambda function will be invoked upon user completion of Spotify auth flow. Create this lambda using the code from callback_spotify_lambda/. The environment variables that these lambda functions require are documented in the respective lambda function file in each of these directories.
 

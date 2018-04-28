@@ -1,7 +1,8 @@
 resource "aws_dynamodb_table" "songs_in_flight-table" {
   name           = "${var.DYNAMO_SONGS_IN_FLIGHT_TABLE_NAME}"
-    read_capacity  = 3
-    write_capacity = 3
+    read_capacity  = "${var.DYNAMO_SONGS_IN_FLIGHT_READ_CAPACITY}"
+    write_capacity = "${var.DYNAMO_SONGS_IN_FLIGHT_WRITE_CAPACITY}"
+
     hash_key       = "user-time"
     stream_enabled = true
     stream_view_type = "OLD_IMAGE"
