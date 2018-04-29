@@ -1,0 +1,40 @@
+Progress Thus Far
+----------------
+Since the last checkpoint I have completed my Terraform configuration, completed the registration portion of my application, and put a great effort into documenting my project. I believe the README is thorough and covers the features and nuiances of my project.
+
+Problems Encountered
+--------------------
+I spent a lot of time considering whether to develop a Facebook messenger 'chat extension'. This platform allows you to develop in a webview in the Messenger app, and could've allowed me to create a sleek UI for my app. Colin had great suggestions in my Checkpoint 1 feedback that included this. I spent a considerable amount of time considering developing a 'chat extension' but ultimately decided that I was unsure I could finish the project with that route. I decided to proceed with a text-based chat bot instead because I wanted to instead use this time to tie up the many loose ends in my project and ensure it is documented very well. 
+
+Remaining Work (pasted from README)
+----------------------------------
+- [x] 1-1 user song sharing
+- [ ] Terraform configuration
+  - [x] Remote State (S3)
+  - [x] API Gateway
+  - [x] Lambda 1
+  - [x] Lambda 2
+  - [x] DynamoDB tables (users, songs_in_flight)
+  - [x] IAM policies
+  - [ ] API Gateway and Lambda functions (2) for Spotify API authorization
+- [x] Registration Process
+- [x] Fine tune TTL parameters, # of retries to Spotify recently played API per song share request
+- [ ] Group song sharing
+
+Despite the remaining work on this list, I am considering the development of my project complete. This is explained below. I have spent a lot of time writign documentation, but I still have to add and refine several pieces.
+
+I have decided that I will not implement group song sharing because I do not view the final form of this project as this text-based chat bot. I will consider migrating it to a 'chat extension' or moving this project to a platform other than FB Messenger that hopefully does not have some of the problems that I have encountered with the structure of bots on this platform. I am not implementing groups because this is not a version I would distribute to users. Additionally, I spent the time I would have spent on implementing groups learning and imporoving my project Terraform configuration, and I believe this was a more worthwhile experience.
+
+I did not define the Lambda functions that wrap the Spotify authorization API because I had to set several components of the Lambda functions that I could not find out how to recreate in Terraform. Namely setting a integration response header. I would have liked to have my entire infrastructure defined in Terraform, but I made sure to document this very well in my README.
+
+Updated Architecture Diagram
+----------------------------
+See README
+
+Open Questions
+--------------
+None, but I do have a comment -- Terraform is awesome!
+
+Link to Public Hithub Codebase
+-------------------------------
+https://github.com/ndelnano/send_songs
